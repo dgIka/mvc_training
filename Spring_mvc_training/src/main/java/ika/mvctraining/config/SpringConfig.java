@@ -33,6 +33,15 @@ public class SpringConfig implements WebMvcConfigurer {
     public SpringConfig(ApplicationContext applicationContext, Environment environment) {
         this.applicationContext = applicationContext;
         this.environment = environment;
+        System.out.println("=== Проверка загрузки свойств ===");
+        System.out.println("URL: " + environment.getProperty("url"));
+        System.out.println("Driver: " + environment.getProperty("driver"));
+        System.out.println("Username: " + environment.getProperty("username"));
+        System.out.println("Password: " + environment.getProperty("password"));
+
+        System.out.println("Все источники username:");
+        System.out.println("Системная переменная: " + System.getProperty("user.name"));
+        System.out.println("Переменная окружения: " + System.getenv("USERNAME"));
     }
 
     @Bean
@@ -62,9 +71,9 @@ public class SpringConfig implements WebMvcConfigurer {
     @Bean
     public DataSource dataSource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName(Objects.requireNonNull(environment.getProperty("driver")));
+        dataSource.setDriverClassName(environment.getProperty("driver"));
         dataSource.setUrl(environment.getProperty("url"));
-        dataSource.setUsername(environment.getProperty("username"));
+        dataSource.setUsername(environment.getProperty("db.username"));
         dataSource.setPassword(environment.getProperty("password"));
         return dataSource;
     }
@@ -73,4 +82,7 @@ public class SpringConfig implements WebMvcConfigurer {
     public JdbcTemplate jdbcTemplate() {
         return new JdbcTemplate(dataSource());
     }
+
+
+
 }
