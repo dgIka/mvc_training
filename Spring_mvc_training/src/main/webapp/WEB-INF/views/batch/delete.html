@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>New person</title>
+</head>
+<body>
+
+<form th:method="DELETE" th:action="@{/test-batch-update}">
+  <input type="number" name="age" required min="1" max="150"
+         th:value="${age}" placeholder="Enter age">
+
+  
+  <div style="color:red" th:if="${ageError}" th:text="${ageError}"></div>
+
+  <input type="submit" value="Delete by Age">
+</form>
+
+
+
+  <input type="submit" value="Delete by Age"/>
+</form>
+
+</body>
+</html>

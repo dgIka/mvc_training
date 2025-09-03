@@ -1,10 +1,15 @@
 package ika.mvctraining.dao;
 
 import ika.mvctraining.models.Person;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -12,32 +17,56 @@ import java.util.List;
 
 @Component
 public class PersonDAO {
-
-    private final JdbcTemplate jdbcTemplate;
+    private final SessionFactory sessionFactory;
 
     @Autowired
-    public PersonDAO(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    public PersonDAO(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
     }
 
-
+    @Transactional(readOnly = true)
     public List<Person> index() {
-        return jdbcTemplate.query("SELECT * FROM Person", new BeanPropertyRowMapper<>(Person.class));
+        Session session = sessionFactory.getCurrentSession();
+        Query<Person> query = session.createQuery("from Person", Person.class);
+        List<Person> persons = query.list();
+        if (persons.isEmpty()) {
+            System.out.println("No persons found");
+        } else {persons.stream().forEach(System.out::println);}
+        System.out.println(debugDb());
+        return persons;
+    }
+
+    @Transactional(readOnly = true)
+    public String debugDb() {
+        Object[] r = (Object[]) sessionFactory.getCurrentSession()
+                .createNativeQuery("""
+            select version(),
+                   inet_server_addr(),
+                   inet_server_port(),
+                   current_database(),
+                   current_user,
+                   current_schema(),
+                   (select count(*) from public.person)
+        """)
+                .getSingleResult();
+        return String.format("version=%s host=%s port=%s db=%s user=%s schema=%s count(person)=%s",
+                r[0], r[1], r[2], r[3], r[4], r[5], r[6]);
     }
 
     public Person show(int id) {
-        return jdbcTemplate.queryForObject("SELECT * FROM Person WHERE id = ?", new Object[] { id }, new BeanPropertyRowMapper<>(Person.class));
+        return null;
+    }
+
+    public Person show(String email) {
+        return null;
     }
 
     public void save(Person person) {
-        jdbcTemplate.update("INSERT INTO person VALUES (1, ?, ?, ?)", person.getName(), person.getAge(), person.getEmail());
     }
     public void update(int id, Person updatedPerson) {
-    jdbcTemplate.update("UPDATE person SET name = ?, age = ?, email = ? WHERE id = ?", updatedPerson.getName(), updatedPerson.getAge(), updatedPerson.getEmail(), id);
     }
 
     public void delete(int id) {
-            jdbcTemplate.update("DELETE FROM person WHERE id = ?", id);
         }
 
 
