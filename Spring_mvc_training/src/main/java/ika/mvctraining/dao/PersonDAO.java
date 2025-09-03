@@ -27,46 +27,45 @@ public class PersonDAO {
     @Transactional(readOnly = true)
     public List<Person> index() {
         Session session = sessionFactory.getCurrentSession();
-        Query<Person> query = session.createQuery("from Person", Person.class);
-        List<Person> persons = query.list();
-        if (persons.isEmpty()) {
-            System.out.println("No persons found");
-        } else {persons.stream().forEach(System.out::println);}
-        System.out.println(debugDb());
-        return persons;
+        return session.createQuery("from Person", Person.class).getResultList();
     }
 
-    @Transactional(readOnly = true)
-    public String debugDb() {
-        Object[] r = (Object[]) sessionFactory.getCurrentSession()
-                .createNativeQuery("""
-            select version(),
-                   inet_server_addr(),
-                   inet_server_port(),
-                   current_database(),
-                   current_user,
-                   current_schema(),
-                   (select count(*) from public.person)
-        """)
-                .getSingleResult();
-        return String.format("version=%s host=%s port=%s db=%s user=%s schema=%s count(person)=%s",
-                r[0], r[1], r[2], r[3], r[4], r[5], r[6]);
-    }
-
+    @Transactional
     public Person show(int id) {
-        return null;
+        Session session = sessionFactory.getCurrentSession();
+        return session.get(Person.class, id);
     }
 
+
+    @Transactional
     public Person show(String email) {
-        return null;
+        Session session = sessionFactory.getCurrentSession();
+        Query<Person> query = session.createQuery("from Person where email = :email", Person.class).setParameter("email", email);
+        return query.uniqueResultOptional().orElse(null);
     }
 
+    @Transactional
     public void save(Person person) {
-    }
-    public void update(int id, Person updatedPerson) {
+        Session session = sessionFactory.getCurrentSession();
+        session.save(person);
     }
 
+    @Transactional
+    public void update(int id, Person updatedPerson) {
+        Session session = sessionFactory.getCurrentSession();
+        Person person = session.get(Person.class, id);
+        person.setName(updatedPerson.getName());
+        person.setEmail(updatedPerson.getEmail());
+        person.setAddress(updatedPerson.getAddress());
+        person.setAge(updatedPerson.getAge());
+        session.update(person);
+    }
+
+    @Transactional
     public void delete(int id) {
+        Session session = sessionFactory.getCurrentSession();
+        Person person = session.get(Person.class, id);
+        session.delete(person);
         }
 
 
